@@ -452,4 +452,4 @@ reportUnusedVariable = "none"
 reportWildcardImportFromLibrary = "none"
 
 [tool.uv]
-default-groups = "all"
+default-groups = ["all"]
