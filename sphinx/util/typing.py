@@ -559,36 +559,9 @@ def stringify_annotation(
             )
             return f'{module_prefix}Literal[{args}]'
         elif _is_annotated_form(annotation):  # for py310+
-            args = stringify_annotation(
+            return stringify_annotation(
                 annotation_args[0], mode=mode, short_literals=short_literals
             )
-            meta_args = []
-            for m in annotation.__metadata__:
-                if isinstance(m, type):
-                    meta_args.append(
-                        stringify_annotation(
-                            m, mode=mode, short_literals=short_literals
-                        )
-                    )
-                elif dataclasses.is_dataclass(m):
-                    # use stringify_annotation for the repr of field values rather than repr
-                    d_fields = ', '.join([
-                        f'{f.name}={stringify_annotation(getattr(m, f.name), mode=mode, short_literals=short_literals)}'  # NoQA: E501
-                        for f in dataclasses.fields(m)
-                        if f.repr
-                    ])
-                    meta_args.append(
-                        f'{stringify_annotation(type(m), mode=mode, short_literals=short_literals)}({d_fields})'  # NoQA: E501
-                    )
-                else:
-                    meta_args.append(repr(m))
-            meta = ', '.join(meta_args)
-            if sys.version_info[:2] <= (3, 11):
-                if mode == 'fully-qualified-except-typing':
-                    return f'Annotated[{args}, {meta}]'
-                module_prefix = module_prefix.replace('builtins', 'typing')
-                return f'{module_prefix}Annotated[{args}, {meta}]'
-            return f'{module_prefix}Annotated[{args}, {meta}]'
         elif all(is_system_TypeVar(a) for a in annotation_args):
             # Suppress arguments if all system defined TypeVars (ex. Dict[KT, VT])
             return module_prefix + qualname
